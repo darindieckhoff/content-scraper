@@ -37,15 +37,15 @@
       $('img', '.products').each(function() {
         var title = $(this).attr('alt');
         var url = $(this).parent().attr('href');
-        var fullURL = contentWebsite + url;
+        var fullURL = contentWebsite.replace('shirts.php', url);
         var imageURL = contentWebsite + $(this).attr('src');
-        var time = new Date().toLocaleTimeString();
+        var time = new Date().toTimeString();
         var csvArray = [];
         csvArray.push(title, imageURL, fullURL, time); 
-        shirtInfo(url, csvArray);
+        shirtInfo(fullURL, csvArray);
       });
     } else {
-      console.log('There’s been a ' + response.statusCode + ' ' + response.statusMessage + ' error. Cannot connect to http://www.shirts4mike.com/');
+      console.log('There’s been a ' + response.statusCode + ' ' + response.statusMessage + ' error. Cannot connect to ' + contentWebsite);
       errorLog(response);
     }//error check end
   }); //end request
@@ -56,8 +56,9 @@
 -Logs error to console.
 -Uses counter to determine when all data has been gathered before writing to csv.
 *******************/ 
-  function shirtInfo(url, array) {
-    request('http://www.shirts4mike.com/' + url, function(error, response, data){
+  function shirtInfo(fullURL, array) {
+    request(fullURL, function(error, response, data){
+      //console.log(fullURL);
       if (!error && response.statusCode === 200){
         var $ = cheerio.load(data);
         var price = $('.price').text();
@@ -65,7 +66,8 @@
         counter += 1;
         dataArray.push(array);
       } else {
-        console.log('There’s been an error. Cannot connect to http://www.shirts4mike.com/' + url);
+        console.log('There’s been a ' + response.statusCode + ' ' + response.statusMessage + ' error. Cannot connect to ' + fullURL);
+        errorLog(response);
       } //end error check
       if (counter === 8) {
         createCSV(dataArray);
